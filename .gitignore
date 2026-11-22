@@ -1,0 +1,20 @@
+# Public submission files
+/*
+!/.gitignore
+!/README.md
+!/package.json
+!/package-lock.json
+!/playwright.config.ts
+!/compose.yaml
+!/tests/
+!/monitoring/
+
+# Local credentials and machine-generated files in included directories
+.env
+.env.*
+*.pem
+*.key
+.DS_Store
+node_modules/
+playwright-report/
+test-results/

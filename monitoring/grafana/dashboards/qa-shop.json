@@ -1,0 +1,620 @@
+{
+  "uid": "qa-shop",
+  "title": "Лавка · мониторинг магазина",
+  "description": "Метрики HTTP API, заказов и состояния каталога учебного магазина.",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "tags": [
+    "qa-shop",
+    "prometheus"
+  ],
+  "timezone": "browser",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Сбор метрик",
+      "description": "Prometheus успешно получает /metrics от магазина.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "max(up{job=\"qa-shop\"}) or on() vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Недоступен",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "Работает",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 2,
+      "title": "HTTP 5xx за 5 мин",
+      "description": "Доля ответов 5xx среди запросов API. При отсутствии запросов показывается 0%.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "((sum(rate(http_requests_total{job=\"qa-shop\",route=~\"/api/.*|unknown\",status=~\"5..\"}[5m])) or on() vector(0)) / clamp_min((sum(rate(http_requests_total{job=\"qa-shop\",route=~\"/api/.*|unknown\"}[5m])) or on() vector(0)), 1e-9)) * 100",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Заказы за 24 часа",
+      "description": "Оценка прироста счётчика оформленных заказов за скользящие 24 часа.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "sum(increase(shop_orders_total{job=\"qa-shop\"}[24h])) or on() vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Сумма заказов за 24 часа",
+      "description": "Сумма оформленных заказов с доставкой. Подтверждение оплаты в метрике не учитывается.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "sum(increase(shop_revenue_rub_total{job=\"qa-shop\"}[24h])) or on() vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyRUB",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Запросы API по статусам",
+      "description": "Среднее число запросов в секунду за 5 минут. Статика и скрейп /metrics исключены.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (status) (rate(http_requests_total{job=\"qa-shop\",route=~\"/api/.*|unknown\"}[5m]))",
+          "legendFormat": "HTTP {{status}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "min": 0,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Задержка API · p95",
+      "description": "Оценка 95-го перцентиля по гистограмме. При отсутствии трафика значение отсутствует.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{job=\"qa-shop\",route=~\"/api/.*|unknown\"}[5m])))",
+          "legendFormat": "p95",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Сессии в памяти",
+      "description": "Сервер считает и гостевые сессии. Значение сбрасывается при перезапуске процесса.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "shop_active_sessions{job=\"qa-shop\"}",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 8,
+      "title": "Товары без остатка",
+      "description": "Число позиций, которые сейчас нельзя добавить в корзину.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 12,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "shop_products_out_of_stock{job=\"qa-shop\"}",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 9,
+      "title": "Товары в корзину за 24 часа",
+      "description": "Оценка числа добавленных единиц товара за скользящие 24 часа.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "sum(increase(shop_cart_items_added_total{job=\"qa-shop\"}[24h])) or on() vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 10,
+      "title": "Регистрации за 24 часа",
+      "description": "Оценка числа успешных регистраций за скользящие 24 часа.",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 12,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "sum(increase(shop_users_registered_total{job=\"qa-shop\"}[24h])) or on() vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 11,
+      "title": "Действия покупателей",
+      "description": "Среднее число событий в минуту за последние 5 минут.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "qa-shop-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "A",
+          "expr": "60 * sum(rate(shop_cart_items_added_total{job=\"qa-shop\"}[5m])) or on() vector(0)",
+          "legendFormat": "Товары в корзину",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "B",
+          "expr": "60 * sum(rate(shop_users_registered_total{job=\"qa-shop\"}[5m])) or on() vector(0)",
+          "legendFormat": "Регистрации",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "C",
+          "expr": "60 * sum(rate(shop_login_failures_total{job=\"qa-shop\"}[5m])) or on() vector(0)",
+          "legendFormat": "Неудачные входы",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "qa-shop-prometheus"
+          },
+          "refId": "D",
+          "expr": "60 * sum(rate(shop_orders_total{job=\"qa-shop\"}[5m])) or on() vector(0)",
+          "legendFormat": "Заказы",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ]
+}
